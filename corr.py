@@ -11,11 +11,6 @@ from time import time
 import argparse as ar
 from sklearn.preprocessing import PolynomialFeatures
 
-ap = ar.ArgumentParser()
-ap.add_argument("FILE", help="El archivo de entrada")
-ap.add_argument("-s", "--sep", dest="SEP", type=str, default=",", required=False, help="separador en el CSV")
-args = ap.parse_args()
-
 
 class Corr:
     def __init__(self, path):
@@ -159,7 +154,20 @@ class Corr:
         print("Tiempo:", tf - ti)
 
 
-mlr = Corr(args.FILE)
-mlr.rdcvs(args.SEP)
-mlr.param()
-mlr.corr()
+def parse_args():
+    ap = ar.ArgumentParser()
+    ap.add_argument("FILE", help="El archivo de entrada")
+    ap.add_argument("-s", "--sep", dest="SEP", type=str, default=",", required=False, help="separador en el CSV")
+    return ap.parse_args()
+
+
+def main(file, sep):
+    mlr = Corr(file)
+    mlr.rdcvs(sep)
+    mlr.param()
+    mlr.corr()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(file=args.FILE, sep=args.SEP)
