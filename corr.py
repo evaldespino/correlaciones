@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import numpy as np
+import argparse as ar
 import itertools as it
+from time import time
+
+import numpy as np
 import pandas as pd
+from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
-from sklearn.feature_selection import f_regression
-from sklearn.preprocessing import scale
-from sklearn.preprocessing import normalize
-from time import time
-import argparse as ar
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import PolynomialFeatures, normalize, scale
 
 
 class Corr:
