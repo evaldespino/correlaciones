@@ -14,6 +14,9 @@ from sklearn.preprocessing import PolynomialFeatures, normalize, scale
 class Corr:
     def __init__(self, path):
         self.path = path
+        self.num_des = 0
+        self.orden_polinomio = 0
+        self.n = 0
 
     def read_csv(self, sep):
         print("Leyendo los datos del CSV")
@@ -30,42 +33,31 @@ class Corr:
         print("Se encontraron", len(self.noms),
               "Descriptores numéricos y", self.datos.shape[0], "datos")
 
-    def param(self):
-        print("# Columna a Evaluar (0 - ", len(self.noms) - 1, ")")
-        for i in range(0, len(self.noms)):
-            print(str(i) + ":", self.noms[i])
+    def set_params(self):
+        print(f"# Columna a Evaluar (0 - {len(self.noms) - 1})")
+        for index, col_name in enumerate(self.noms):
+            print(f"{index}: {col_name}")
         self.num = int(input())
         print(self.noms[self.num], "será la propiedad a evaluar")
-        print("Escoge la Rutina:\n 1: Correlación entre Descriptores \n 2: Correlación De propiedades \n 3: Correlaciones polinomiales \n 4: Correlaciones con Descriptores a la n")
+        print("Escoge la rutina:\n 1: Correlación entre descriptores \n 2: Correlación de propiedades \n 3: Correlaciones polinomiales \n 4: Correlaciones con descriptores a la potencia n")
         ent = int(input())
-        print("R2 mínima")
-        self.r_ref = float(input())
-        indexes = np.array([i for i in range(0, self.datos.shape[1])])
-        indexes = indexes[(indexes != self.num)]
-        if ent == 2:
-            print("# Descriptores")
-            self.num_des = int(input())
-            self.comb = np.array(list(it.combinations(indexes, self.num_des)))
-            self.or_pol = 0
-            self.n = 0
-            print(self.comb.shape[0])
-        elif ent == 1:
-            self.comb = np.array(list(it.combinations(indexes, 2)))
-            self.num_des = 0
-            self.or_pol = 0
-            self.n = 0
-        elif ent == 3:
-            print("Orden máxmimo del polinomio")
-            self.or_pol = int(input())
-            self.comb = indexes.reshape((-1, 1))
+        if ent == 1:
+            choose_r = 2
+        elif ent == 2:
+            choose_r = self.num_des = int(input("Número de descriptores: "))
+        elif ent in (3, 4):
             self.num_des = -1
-            self.n = 0
-        elif ent == 4:
-            print("Escribe n (des**n):")
-            self.n = float(input())
-            self.or_pol = 0
-            self.num_des = -1
-            self.comb = indexes.reshape((-1, 1))
+            choose_r = 1
+            if ent == 3:
+                self.orden_polinomio = int(input("Orden máximo del polinomio: "))
+            elif ent == 4:
+                self.n = float(input("Potencia n (des**n): "))
+        else:
+            raise ValueError(f"{ent} no es una opción válida")
+        indexes = np.arange(self.datos.shape[1])
+        indexes = indexes[indexes != self.num]
+        self.comb = np.array(list(it.combinations(indexes, r=choose_r)))
+        self.r_ref = float(input("R2 mínima: "))
 
     def corr(self):
         print("Preprocesamiento:\n 1:Ninguno \n 2:Normalizar \n 3:Escalar")
@@ -89,9 +81,9 @@ class Corr:
                 prop = self.datos[:, self.comb[i][0]]
             if des_ev.size == self.datos.shape[0]:
                 des_ev = des_ev.reshape((-1, 1))
-            if self.or_pol != 0:
+            if self.orden_polinomio != 0:
                 des_ev = PolynomialFeatures(
-                    degree=self.or_pol, include_bias=False).fit_transform(des_ev)
+                    degree=self.orden_polinomio, include_bias=False).fit_transform(des_ev)
             if self.n != 0:
                 des_ev = des_ev**(self.n)
             if ent_pre == 1:
@@ -162,7 +154,7 @@ def parse_args():
 def main(file, sep):
     mlr = Corr(file)
     mlr.read_csv(sep)
-    mlr.param()
+    mlr.set_params()
     mlr.corr()
 
 
