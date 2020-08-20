@@ -60,13 +60,10 @@ class Corr:
         self.r_ref = float(input("R2 mínima: "))
 
     def corr(self):
-        print("Preprocesamiento:\n 1:Ninguno \n 2:Normalizar \n 3:Escalar")
-        ent_pre = int(input())
-        print("Limitar Resultados:\n 1:Sí \n 2:No")
-        ent_lim = int(input())
+        ent_pre = int(input("Preprocesamiento:\n 1: Ninguno \n 2: Normalizar \n 3: Escalar\n"))
+        ent_lim = int(input("Limitar Resultados:\n 1: Sí \n 2: No\n"))
         if ent_lim == 1:
-            print("# de Resultados:")
-            self.res_lim = int(input())
+            self.res_lim = int(input("Número máximo de resultados a mostrar:"))
         else:
             self.res_lim = 0
         np.set_printoptions(precision=3)
