@@ -1,20 +1,14 @@
 # -*- coding: utf-8 -*-
-import numpy as np
+import argparse as ar
 import itertools as it
+from time import time
+
+import numpy as np
 import pandas as pd
+from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
-from sklearn.feature_selection import f_regression
-from sklearn.preprocessing import scale
-from sklearn.preprocessing import normalize
-from time import time
-import argparse as ar
-from sklearn.preprocessing import PolynomialFeatures
-
-ap = ar.ArgumentParser()
-ap.add_argument("path", help="El archivo de entrada")
-ap.add_argument("-s", "--sep", required=False, help="separador en el CSV")
-args = vars(ap.parse_args())
+from sklearn.preprocessing import PolynomialFeatures, normalize, scale
 
 
 class Corr:
@@ -159,10 +153,20 @@ class Corr:
         print("Tiempo:", tf - ti)
 
 
-mlr = Corr(args["path"])
-if args["sep"] is not None:
-    mlr.rdcvs(args["sep"])
-else:
-    mlr.rdcvs(",")
-mlr.param()
-mlr.corr()
+def parse_args():
+    ap = ar.ArgumentParser()
+    ap.add_argument("FILE", help="El archivo de entrada")
+    ap.add_argument("-s", "--sep", dest="SEP", type=str, default=",", required=False, help="separador en el CSV")
+    return ap.parse_args()
+
+
+def main(file, sep):
+    mlr = Corr(file)
+    mlr.rdcvs(sep)
+    mlr.param()
+    mlr.corr()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(file=args.FILE, sep=args.SEP)
