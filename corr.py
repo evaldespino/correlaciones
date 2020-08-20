@@ -70,7 +70,7 @@ class Corr:
         ti = time()
         prop = self.datos[:, self.num]
         res = []
-        for i in range(0, self.comb.shape[0]):
+        for i in range(self.comb.shape[0]):
             if self.num_des != 0:
                 des_ev = self.datos[:, self.comb[i]]
             else:
@@ -90,7 +90,7 @@ class Corr:
             elif ent_pre == 3:
                 des_ev = scale(des_ev)
             title = ""
-            for j in range(0, self.comb.shape[1]):
+            for j in range(self.comb.shape[1]):
                 if self.n == 0:
                     title = title + " " + str(self.noms[self.comb[i][j]])
                 else:
@@ -118,7 +118,7 @@ class Corr:
                 print(str(res[i]["Titulo"]), " R2:", "{:.3f}".format(
                     res[i]["R2"]), "Cv_R2:", "{:.3f}".format(res[i]["CV_R2"][0]), " Ordenada:", "{:.3f}".format(res[i]["Ordenada"]), " Coef:", res[i]["Coef_"], " F:", res[i]["F"], "\n")
         elif self.res_lim != 0 and res.shape[0] < self.res_lim:
-            for i in range(0, res.shape[0]):
+            for i in range(res.shape[0]):
                 print(str(res[i]["Titulo"]), " R2:", "{:.3f}".format(
                     res[i]["R2"]), " Ordenada:", "{:.3f}".format(res[i]["Ordenada"]), " Coef:", res[i]["Coef_"], " F:", res[i]["F"], "\n")
         tf = time()
