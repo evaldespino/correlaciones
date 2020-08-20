@@ -91,13 +91,9 @@ class Corr:
                 des_ev = scale(des_ev)
             title = ""
             for j in range(self.comb.shape[1]):
-                if self.n == 0:
-                    title = title + " " + str(self.noms[self.comb[i][j]])
-                else:
-                    title = title + " " + \
-                        str(self.noms[self.comb[i][j]]) + "**" + str(self.n)
-            # print(des_ev[0])
-            # print(prop[0])
+                title = f"{title} {self.noms[self.comb[i][j]]}"
+                if self.n != 0:
+                    title += f"**{self.n}"
             model = LinearRegression().fit(des_ev, prop)
             r_2 = model.score(des_ev, prop)
             if r_2 >= self.r_ref:
