@@ -15,32 +15,17 @@ class Corr:
     def __init__(self, path):
         self.path = path
 
-    def rdcvs(self, sep):
+    def read_csv(self, sep):
         print("Leyendo los datos del CSV")
         file = pd.read_csv(self.path, sep)
         print("Se encontraron", file.shape[1], "Descriptores y", file.shape[0], "datos")
         print("¿Restringir base de datos? \n 1: Sí \n 2: No ")
         res = int(input())
         if res == 1:
-            cond = [[0, 0, 0]]
-            print("Introduce tu condición:\n Formato: Columna,condición,operador lógico \n Operadores Lógicos: \n &: (y), \n | (o) \n ~ (no) \n Para terminar operador lógico = -1")
-            while cond[len(cond) - 1][2] != "-1":
-                cond_v = input()
-                user_cond = cond_v.split(",")
-                cond.append(user_cond)
-            fcond = ""
-            cond.pop(0)
-            for i in range(0, len(cond)):
-                if cond[i][2] != "-1":
-                    fcond = fcond + "(file[" + cond[i][0] + "]" + \
-                        cond[i][1] + ")" + " " + cond[i][2]
-                else:
-                    fcond = fcond + " (file[" + cond[i][0] + "]" + cond[i][1] + ")"
-            file = file[eval(fcond)]
+            restrictions = self._ask_restrictions()
+            file = file[eval(restrictions)]
         file = file.select_dtypes(include=np.number)
-        self.noms = []
-        for col_name in file:
-            self.noms.append(col_name)
+        self.noms = file.columns.to_list()
         self.datos = file.to_numpy()
         print("Se encontraron", len(self.noms),
               "Descriptores numéricos y", self.datos.shape[0], "datos")
@@ -152,6 +137,20 @@ class Corr:
         print("# de propiedades:", prop.shape[0])
         print("Tiempo:", tf - ti)
 
+    @staticmethod
+    def _ask_restrictions():
+        conditions = [[0, 0, 0]]
+        print("Introduce tu condición:\n Formato: Columna,condición,operador lógico \n Operadores Lógicos: \n &: (y), \n | (o) \n ~ (no) \n Para terminar operador lógico = -1")
+        while conditions[-1][2] != "-1":
+            cond_v = input()
+            conditions.append(cond_v.split(","))
+        fcond = ""
+        conditions.pop(0)                            # Deleting the first item is not great -> O(n)
+        for condition in conditions:
+            fcond += f"(file[{condition[0]}]{condition[1]})"
+            fcond = f"{fcond} {condition[2]}" if condition[2] != "-1" else fcond
+        return fcond
+
 
 def parse_args():
     ap = ar.ArgumentParser()
@@ -162,7 +161,7 @@ def parse_args():
 
 def main(file, sep):
     mlr = Corr(file)
-    mlr.rdcvs(sep)
+    mlr.read_csv(sep)
     mlr.param()
     mlr.corr()
 
