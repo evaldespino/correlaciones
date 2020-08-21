@@ -70,12 +70,12 @@ class Corr:
         ti = time()
         prop = self.datos[:, self.num]
         res = []
-        for i in range(self.comb.shape[0]):
+        for current_comb in self.comb:
             if self.num_des != 0:
-                des_ev = self.datos[:, self.comb[i]]
+                des_ev = self.datos[:, current_comb]
             else:
-                des_ev = self.datos[:, self.comb[i][1]]
-                prop = self.datos[:, self.comb[i][0]]
+                des_ev = self.datos[:, current_comb[1]]
+                prop = self.datos[:, current_comb[0]]
             if des_ev.size == self.datos.shape[0]:
                 des_ev = des_ev.reshape((-1, 1))
             if self.orden_polinomio != 0:
@@ -90,8 +90,8 @@ class Corr:
             elif ent_pre == 3:
                 des_ev = scale(des_ev)
             title = ""
-            for j in range(self.comb.shape[1]):
-                title = f"{title} {self.noms[self.comb[i][j]]}"
+            for col_index in current_comb:
+                title = f"{title} {self.noms[col_index]}"
                 if self.n != 0:
                     title += f"**{self.n}"
             model = LinearRegression().fit(X=des_ev, y=prop)
