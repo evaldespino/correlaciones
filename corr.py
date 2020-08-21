@@ -94,11 +94,11 @@ class Corr:
                 title = f"{title} {self.noms[self.comb[i][j]]}"
                 if self.n != 0:
                     title += f"**{self.n}"
-            model = LinearRegression().fit(des_ev, prop)
-            r_2 = model.score(des_ev, prop)
+            model = LinearRegression().fit(X=des_ev, y=prop)
+            r_2 = model.score(X=des_ev, y=prop)
             if r_2 >= self.r_ref:
-                scores = cross_val_score(model, des_ev, prop, cv=2)
-                f, p = f_regression(des_ev, prop)
+                scores = cross_val_score(estimator=model, X=des_ev, y=prop, cv=2)
+                f, p = f_regression(X=des_ev, y=prop)
                 if self.res_lim != 0:
                     a = (r_2, f, scores, model.intercept_, model.coef_, title)
                     res.append(a)
