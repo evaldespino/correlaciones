@@ -98,15 +98,15 @@ class Corr:
             r_2 = model.score(X=des_ev, y=prop)
             if r_2 >= self.r_ref:
                 scores = cross_val_score(estimator=model, X=des_ev, y=prop, cv=2)
-                f, p = f_regression(X=des_ev, y=prop)
+                f_values, p_values = f_regression(X=des_ev, y=prop)
                 if self.res_lim != 0:
-                    a = (r_2, f, scores, model.intercept_, model.coef_, title)
+                    a = (r_2, f_values, scores, model.intercept_, model.coef_, title)
                     res.append(a)
                 else:
                     print(
                         f"{title} R2: {r_2:.3f} Cv_R2: {scores[0]:.3f}",
                         f"Ordenada: {model.intercept_} Coef: {model.coef_}",
-                        f"F: {f}\n"
+                        f"F: {f_values}\n"
                     )
         res = pd.DataFrame(res, columns=["R2", "F", "CV_R2", "Ordenada", "Coef_", "Titulo"])
         res.sort_values(by="R2", kind="mergesort", ascending=False, inplace=True)
