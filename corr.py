@@ -108,17 +108,17 @@ class Corr:
                         f"Ordenada: {model.intercept_} Coef: {model.coef_}",
                         f"F: {f}\n"
                     )
-        dtype = [("R2", np.float), ("F", np.ndarray), ("CV_R2", np.ndarray),
-                 ("Ordenada", np.float), ("Coef_", np.ndarray), ("Titulo", "S100")]
-        res = np.array(res, dtype=dtype)
-        res = np.sort(res, kind="stable", order="R2")
+        res = pd.DataFrame(res, columns=["R2", "F", "CV_R2", "Ordenada", "Coef_", "Titulo"])
+        res.sort_values(by="R2", kind="mergesort", ascending=False, inplace=True)
+        res.reset_index(drop=True, inplace=True)
         if self.res_lim >= 0:
-            start = res.shape[0] - self.res_lim if res.shape[0] > self.res_lim else 0
-            for i in range(start, res.shape[0]):
+            for result in res.itertuples():
+                if result.Index >= self.res_lim:
+                    break
                 print(
-                    f"{res[i]['Titulo']} R2: {res[i]['R2']:.3f} Cv_R2: {res[i]['CV_R2'][0]:.3f}",
-                    f"Ordenada: {res[i]['Ordenada']:.3f} Coef: {res[i]['Coef_']}",
-                    f"F: {res[i]['F']}\n"
+                    f"{result.Titulo} R2: {result.R2:.3f} Cv_R2: {result.CV_R2[0]:.3f}",
+                    f"Ordenada: {result.Ordenada:.3f} Coef: {result.Coef_}",
+                    f"F: {result.F}\n"
                 )
         tf = time()
         print("Correlaciones Realizadas:", self.comb.shape[0])
