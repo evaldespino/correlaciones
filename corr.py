@@ -17,6 +17,7 @@ class Corr:
         self.num_des = 0
         self.orden_polinomio = 0
         self.n = 0
+        self.res_lim = float("inf")
 
     def read_csv(self, sep):
         print("Leyendo los datos del CSV")
@@ -63,9 +64,7 @@ class Corr:
         ent_pre = int(input("Preprocesamiento:\n 1: Ninguno \n 2: Normalizar \n 3: Escalar\n"))
         ent_lim = int(input("Limitar Resultados:\n 1: Sí \n 2: No\n"))
         if ent_lim == 1:
-            self.res_lim = int(input("Número máximo de resultados a mostrar:"))
-        else:
-            self.res_lim = 0
+            self.res_lim = int(input("Número máximo de resultados a mostrar: "))
         np.set_printoptions(precision=3)
         ti = time()
         prop = self.datos[:, self.num]
@@ -99,31 +98,35 @@ class Corr:
             if r_2 >= self.r_ref:
                 scores = cross_val_score(estimator=model, X=des_ev, y=prop, cv=2)
                 f_values, p_values = f_regression(X=des_ev, y=prop)
-                if self.res_lim != 0:
-                    a = (r_2, f_values, scores, model.intercept_, model.coef_, title)
-                    res.append(a)
-                else:
-                    print(
-                        f"{title} R2: {r_2:.3f} Cv_R2: {scores[0]:.3f}",
-                        f"Ordenada: {model.intercept_} Coef: {model.coef_}",
-                        f"F: {f_values}\n"
-                    )
+                result = (r_2, f_values, scores, model.intercept_, model.coef_, title)
+                res.append(result)
         res = pd.DataFrame(res, columns=["R2", "F", "CV_R2", "Ordenada", "Coef_", "Titulo"])
-        res.sort_values(by="R2", kind="mergesort", ascending=False, inplace=True)
-        res.reset_index(drop=True, inplace=True)
-        if self.res_lim >= 0:
-            for result in res.itertuples():
-                if result.Index >= self.res_lim:
-                    break
-                print(
-                    f"{result.Titulo} R2: {result.R2:.3f} Cv_R2: {result.CV_R2[0]:.3f}",
-                    f"Ordenada: {result.Ordenada:.3f} Coef: {result.Coef_}",
-                    f"F: {result.F}\n"
-                )
+        self.results = res
         tf = time()
         print("Correlaciones Realizadas:", self.comb.shape[0])
         print("# de propiedades:", prop.shape[0])
         print("Tiempo:", tf - ti)
+
+    def print_results(self, sortby="R2", ascending=False):
+        if not len(self.results):
+            print(f"No se encontraron correlaciones con R2 mayor a {self.r_ref}")
+            return None
+        if sortby not in self.results.columns:
+            sortby = "R2"
+        results = self.results.sort_values(
+            by=sortby,
+            kind="mergesort",
+            ascending=ascending
+        )
+        results.reset_index(drop=True, inplace=True)
+        for result in results.itertuples():
+            if result.Index >= self.res_lim:
+                break
+            print(
+                f"{result.Titulo} R2: {result.R2:.3f} Cv_R2: {result.CV_R2[0]:.3f}",
+                f"Ordenada: {result.Ordenada:.3f} Coef: {result.Coef_}",
+                f"F: {result.F}\n"
+            )
 
     @staticmethod
     def _ask_restrictions():
@@ -152,6 +155,7 @@ def main(file, sep):
     mlr.read_csv(sep)
     mlr.set_params()
     mlr.corr()
+    mlr.print_results()
 
 
 if __name__ == "__main__":
