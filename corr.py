@@ -112,15 +112,9 @@ class Corr:
                  ("Ordenada", np.float), ("Coef_", np.ndarray), ("Titulo", "S100")]
         res = np.array(res, dtype=dtype)
         res = np.sort(res, kind="stable", order="R2")
-        if self.res_lim != 0 and res.shape[0] > self.res_lim:
-            for i in range(res.shape[0] - self.res_lim, res.shape[0]):
-                print(
-                    f"{res[i]['Titulo']} R2: {res[i]['R2']:.3f} Cv_R2: {res[i]['CV_R2'][0]:.3f}",
-                    f"Ordenada: {res[i]['Ordenada']:.3f} Coef: {res[i]['Coef_']}",
-                    f"F: {res[i]['F']}\n"
-                )
-        elif self.res_lim != 0 and res.shape[0] < self.res_lim:
-            for i in range(res.shape[0]):
+        if self.res_lim >= 0:
+            start = res.shape[0] - self.res_lim if res.shape[0] > self.res_lim else 0
+            for i in range(start, res.shape[0]):
                 print(
                     f"{res[i]['Titulo']} R2: {res[i]['R2']:.3f} Cv_R2: {res[i]['CV_R2'][0]:.3f}",
                     f"Ordenada: {res[i]['Ordenada']:.3f} Coef: {res[i]['Coef_']}",
