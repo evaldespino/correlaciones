@@ -103,20 +103,29 @@ class Corr:
                     a = (r_2, f, scores, model.intercept_, model.coef_, title)
                     res.append(a)
                 else:
-                    print(title, "R2:", "{:.3f}".format(r_2), "Cv_R2:", "{:.3f}".format(scores[0]), "Ordenada:", "{:.3f}".format(
-                        model.intercept_), "Coef:", model.coef_, "F:", f, "\n")
+                    print(
+                        f"{title} R2: {r_2:.3f} Cv_R2: {scores[0]:.3f}",
+                        f"Ordenada: {model.intercept_} Coef: {model.coef_}",
+                        f"F: {f}\n"
+                    )
         dtype = [("R2", np.float), ("F", np.ndarray), ("CV_R2", np.ndarray),
                  ("Ordenada", np.float), ("Coef_", np.ndarray), ("Titulo", "S100")]
         res = np.array(res, dtype=dtype)
         res = np.sort(res, kind="stable", order="R2")
         if self.res_lim != 0 and res.shape[0] > self.res_lim:
             for i in range(res.shape[0] - self.res_lim, res.shape[0]):
-                print(str(res[i]["Titulo"]), " R2:", "{:.3f}".format(
-                    res[i]["R2"]), "Cv_R2:", "{:.3f}".format(res[i]["CV_R2"][0]), " Ordenada:", "{:.3f}".format(res[i]["Ordenada"]), " Coef:", res[i]["Coef_"], " F:", res[i]["F"], "\n")
+                print(
+                    f"{res[i]['Titulo']} R2: {res[i]['R2']:.3f} Cv_R2: {res[i]['CV_R2'][0]:.3f}",
+                    f"Ordenada: {res[i]['Ordenada']:.3f} Coef: {res[i]['Coef_']}",
+                    f"F: {res[i]['F']}\n"
+                )
         elif self.res_lim != 0 and res.shape[0] < self.res_lim:
             for i in range(res.shape[0]):
-                print(str(res[i]["Titulo"]), " R2:", "{:.3f}".format(
-                    res[i]["R2"]), " Ordenada:", "{:.3f}".format(res[i]["Ordenada"]), " Coef:", res[i]["Coef_"], " F:", res[i]["F"], "\n")
+                print(
+                    f"{res[i]['Titulo']} R2: {res[i]['R2']:.3f} Cv_R2: {res[i]['CV_R2'][0]:.3f}",
+                    f"Ordenada: {res[i]['Ordenada']:.3f} Coef: {res[i]['Coef_']}",
+                    f"F: {res[i]['F']}\n"
+                )
         tf = time()
         print("Correlaciones Realizadas:", self.comb.shape[0])
         print("# de propiedades:", prop.shape[0])
