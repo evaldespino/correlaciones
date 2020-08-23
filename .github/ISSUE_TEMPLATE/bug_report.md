@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Crea un reporte para mejorar el programa
-title: ''
+title: "[BUG]: "
 labels: bug
 assignees: ''
 
