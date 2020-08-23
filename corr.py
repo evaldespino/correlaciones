@@ -82,12 +82,7 @@ class Corr:
                     degree=self.orden_polinomio, include_bias=False).fit_transform(des_ev)
             if self.n != 0:
                 des_ev = des_ev**(self.n)
-            if ent_pre == 1:
-                des_ev = des_ev
-            elif ent_pre == 2:
-                des_ev = normalize(des_ev, axis=0)
-            elif ent_pre == 3:
-                des_ev = scale(des_ev)
+            des_ev = self._preprocess(data=des_ev, mode=ent_pre)
             title = ""
             for col_index in current_comb:
                 title = f"{title} {self.noms[col_index]}"
@@ -142,6 +137,16 @@ class Corr:
             fcond = f"{fcond} {condition[2]}" if condition[2] != "-1" else fcond
         return fcond
 
+    @staticmethod
+    def _preprocess(data, mode=None):
+        if mode == 1:
+            return data
+        elif mode == 2:
+            return normalize(data, axis=0)
+        elif mode == 3:
+            return scale(data)
+        else:
+            raise ValueError(f"{mode} no es una opción de preprocesamiento válida.")
 
 def parse_args():
     ap = ar.ArgumentParser()
