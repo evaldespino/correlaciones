@@ -116,9 +116,9 @@ class Corr:
         results = self.results.sort_values(
             by=sortby,
             kind="mergesort",
-            ascending=ascending
+            ascending=ascending,
+            ignore_index=True
         )
-        results.reset_index(drop=True, inplace=True)
         for result in results.itertuples():
             if result.Index >= self.res_lim:
                 break
