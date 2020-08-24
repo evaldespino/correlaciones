@@ -83,20 +83,17 @@ class Corr:
             if self.n != 0:
                 des_ev = des_ev**(self.n)
             des_ev = self._preprocess(data=des_ev, mode=ent_pre)
-            title = ""
-            for col_index in current_comb:
-                title = f"{title} {self.noms[col_index]}"
-                if self.n != 0:
-                    title += f"**{self.n}"
             model = LinearRegression().fit(X=des_ev, y=prop)
             r_2 = model.score(X=des_ev, y=prop)
             if r_2 >= self.r_ref:
+                regressors = [self.noms[idx] for idx in current_comb]
                 scores = cross_val_score(estimator=model, X=des_ev, y=prop, cv=2)
                 f_values, p_values = f_regression(X=des_ev, y=prop)
-                result = (r_2, f_values, scores, model.intercept_, model.coef_, title)
+                result = (r_2, f_values, scores, model.intercept_, model.coef_, regressors)
                 res.append(result)
-        res = pd.DataFrame(res, columns=["R2", "F", "CV_R2", "Ordenada", "Coef_", "Titulo"])
-        self.results = res
+        self.results = pd.DataFrame(
+            res, columns=["R2", "F", "CV_R2", "Ordenada", "Coef_", "Regresores"]
+        )
         tf = time()
         print("Correlaciones Realizadas:", self.comb.shape[0])
         print("# de propiedades:", prop.shape[0])
@@ -117,11 +114,20 @@ class Corr:
         for result in results.itertuples():
             if result.Index >= self.res_lim:
                 break
+            titulo = self._make_title(result.Regresores)
             print(
-                f"{result.Titulo} R2: {result.R2:.3f} Cv_R2: {result.CV_R2[0]:.3f}",
+                f"{titulo} R2: {result.R2:.3f} Cv_R2: {result.CV_R2[0]:.3f}",
                 f"Ordenada: {result.Ordenada:.3f} Coef: {result.Coef_}",
                 f"F: {result.F}\n"
             )
+
+    def _make_title(self, regressors):
+        title = ""
+        for regressor in regressors:
+            title = f"{title} {regressor}"
+            if self.n != 0:
+                title += f"**{self.n}"
+        return title
 
     @staticmethod
     def _ask_restrictions():
@@ -147,6 +153,7 @@ class Corr:
             return scale(data)
         else:
             raise ValueError(f"{mode} no es una opción de preprocesamiento válida.")
+
 
 def parse_args():
     ap = ar.ArgumentParser()
