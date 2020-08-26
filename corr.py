@@ -131,16 +131,16 @@ class Corr:
 
     @staticmethod
     def _ask_restrictions():
-        conditions = [[0, 0, 0]]
+        restrictions = [[0, 0, 0]]
         print("Introduce tu condición:\n Formato: Columna,condición,operador lógico \n Operadores Lógicos: \n &: (y), \n | (o) \n ~ (no) \n Para terminar operador lógico = -1")
-        while conditions[-1][2] != "-1":
+        while restrictions[-1][2] != "-1":
             cond_v = input()
-            conditions.append(cond_v.split(","))
+            restrictions.append(cond_v.split(","))
         fcond = ""
-        conditions.pop(0)                            # Deleting the first item is not great -> O(n)
-        for condition in conditions:
-            fcond += f"(file[{condition[0]}]{condition[1]})"
-            fcond = f"{fcond} {condition[2]}" if condition[2] != "-1" else fcond
+        restrictions.pop(0)                            # Deleting the first item is not great -> O(n)
+        for column, condition, operator in restrictions:
+            fcond += f"(file[{column}]{condition})"
+            fcond = f"{fcond} {operator}" if operator != "-1" else fcond
         return fcond
 
     @staticmethod
