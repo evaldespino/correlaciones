@@ -41,7 +41,6 @@ class CorrelationBase:
         self.data = self.data.select_dtypes(include=np.number)
         self.col_names = self.data.columns.to_list()
         self.col_info = {key: index for index, key in enumerate(self.data.columns)}
-        self.data = self.data.to_numpy()
 
     def set_params(self, *args, **kwargs):
         funcname = sys._getframe().f_code.co_name
@@ -104,36 +103,17 @@ class CorrelationBase:
         raise NotImplementedError
 
     def _get_extended_result(self, model, X, y, var_indexes: list) -> dict:
-        funcs = {
-            "r2": lambda model, X, y: model.score(X, y),
-            "f_values": lambda model, X, y: f_regression(X, y)[0],
-            "p_values": lambda model, X, y: f_regression(X, y)[1],
-            "cv_r2": lambda model, X, y: cross_val_score(
-                estimator=model, X=X, y=y, cv=2
-            ),
-            "intercept": lambda *args: model.intercept_,
-            "coef": lambda *args: model.coef_,
-            "regressors": lambda *args: [self.col_names[idx] for idx in var_indexes],
-            # "regressors": lambda *args: var_indexes
+        f_values, p_values = f_regression(X, y)
+        result = {
+            "r2": model.score(X, y),
+            "f_values": f_values,
+            "p_values": p_values,
+            "cv_r2": cross_val_score(estimator=model, X=X, y=y, cv=2),
+            "intercept": model.intercept_,
+            "coef": model.coef_,
+            "regressors": var_indexes,
         }
-        # d = {}
-        # for key, func in funcs.items():
-        #     d[key] = func(model, X, y)
-        return {key: func(model, X, y) for key, func in funcs.items()}
-        # r_2 = model.score(X, y)
-        # regressors = [self.col_names[idx] for idx in var_idxs]
-        # scores = cross_val_score(estimator=model, X=X, y=y, cv=2)
-        # f_values, p_values = f_regression(X, y)
-        # result = (
-        #     r_2,
-        #     f_values,
-        #     p_values,
-        #     scores,
-        #     model.intercept_,
-        #     model.coef_,
-        #     regressors,
-        # )
-        # return result
+        return result
 
 
 class DescriptorCorrelation(CorrelationBase):
@@ -141,17 +121,15 @@ class DescriptorCorrelation(CorrelationBase):
         super()._select_data()
         self.r_ref = r_ref
         choose_r = 2
-        indexes = np.arange(self.data.shape[1])
-        self.combinations = list(itt.combinations(indexes, r=choose_r))
-        # self.combinations = list(itt.combinations(self.col_names, r=choose_r))
+        self.combinations = list(itt.combinations(self.col_names, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
         for current_comb in self.combinations:
             x_index, y_index = current_comb
             X, y = self.prepare_data(
-                x=self.data[:, x_index],
-                y=self.data[:, y_index],
+                x=self.data.loc[:, x_index].to_numpy(),
+                y=self.data.loc[:, y_index].to_numpy(),
                 preprocessing=preprocessing,
             )
             model = LinearRegression().fit(X, y)
@@ -177,19 +155,16 @@ class PropertiesCorrelation(CorrelationBase):
         super()._select_data()
         self.desc_num = desc_num
         self.r_ref = r_ref
-        # prop_idx = self.data.get_loc(prop_name)
-        prop_idx = self.col_info[prop_name]
-        self.property = self.data[:, prop_idx]
+        self.property = self.data[prop_name].to_numpy()
         choose_r = desc_num if desc_num <= len(self.col_names) else 2  # TODO: Check
-        indexes = np.arange(self.data.shape[1])
-        indexes = indexes[indexes != prop_idx]
+        indexes = self.data.columns[self.data.columns != prop_name]
         self.combinations = list(itt.combinations(indexes, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                X=self.data[:, current_comb], preprocessing=preprocessing
+                X=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.property)
             r_2 = model.score(X, y=self.property)
@@ -210,18 +185,16 @@ class PolynomialCorrelation(CorrelationBase):
         super()._select_data()
         self.degree = degree
         self.r_ref = r_ref
-        prop_idx = self.col_info[prop_name]
-        self.property = self.data[:, prop_idx]
+        self.property = self.data[prop_name].to_numpy()
         choose_r = 1
-        indexes = np.arange(self.data.shape[1])
-        indexes = indexes[indexes != prop_idx]
+        indexes = self.data.columns[self.data.columns != prop_name]
         self.combinations = list(itt.combinations(indexes, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                x=self.data[:, current_comb], preprocessing=preprocessing
+                x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.property)
             r_2 = model.score(X, y=self.property)
@@ -248,18 +221,16 @@ class PowerCorrelation(CorrelationBase):
         super()._select_data()
         self.n_pow = n_pow
         self.r_ref = r_ref
-        prop_idx = self.col_info[prop_name]
-        self.property = self.data[:, prop_idx]
+        self.property = self.data[prop_name].to_numpy()
         choose_r = 1
-        indexes = np.arange(self.data.shape[1])
-        indexes = indexes[indexes != prop_idx]
+        indexes = self.data.columns[self.data.columns != prop_name]
         self.combinations = list(itt.combinations(indexes, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                x=self.data[:, current_comb], preprocessing=preprocessing
+                x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.property)
             r_2 = model.score(X, y=self.property)
