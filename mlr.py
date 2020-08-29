@@ -25,12 +25,12 @@ class CorrelationBase:
         data = pd.read_csv(filepath, sep)
         return cls(data)
 
-    def restrict(self, conditions: list):
+    def restrict(self, conditions: List[str]):
         conditions = self._format_restrictions(conditions)
         self.data = self.data[eval(conditions)]
 
     @staticmethod
-    def _format_restrictions(conditions: list) -> str:
+    def _format_restrictions(conditions: List[str]) -> str:
         fmt_str = ""
         for column, condition, operator in conditions:
             fmt_str += f"(self.data[{column}] {condition})"
@@ -72,7 +72,7 @@ class CorrelationBase:
                 f"F: {result.f_values}\n",
             )
 
-    def _make_title(self, regressors: list) -> str:
+    def _make_title(self, regressors: List) -> str:
         title = ""
         for regressor in regressors:
             title = f"{title} {regressor}"
@@ -84,7 +84,7 @@ class CorrelationBase:
         pass
 
     @staticmethod
-    def _preprocess(data, mode: str = None):
+    def _preprocess(data, mode: Optional[str] = None):
         if mode is None:
             return data
         elif mode == "normalize":
@@ -116,21 +116,23 @@ class CorrelationBase:
         return result
 
     @staticmethod
-    def _drop_from_index(index, ignore: list):
+    def _drop_from_index(index, ignore: List[str]):
         if ignore is not None:
             index = index.drop(validate_sequence(ignore))
         return index
 
 
 class DescriptorCorrelation(CorrelationBase):
-    def set_params(self, ignore: Union[str, Iterable] = None, r_ref: float = 0):
+    def set_params(
+        self, ignore: Optional[Union[str, Iterable]] = None, r_ref: float = 0
+    ):
         super()._select_data()
         self.r_ref = r_ref
         choose_r = 2
         pool = super()._drop_from_index(index=self.data.columns, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
-    def correlation(self, preprocessing=None):
+    def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             x_index, y_index = current_comb
@@ -148,7 +150,7 @@ class DescriptorCorrelation(CorrelationBase):
                 res.append(result)
         self.results = pd.DataFrame(res)
 
-    def prepare_data(self, x, y, preprocessing):
+    def prepare_data(self, x, y, preprocessing: Optional[str]):
         X = self.transform_x(x)
         X = super()._preprocess(data=X, mode=preprocessing)
         return X, y
@@ -162,7 +164,7 @@ class PropertiesCorrelation(CorrelationBase):
         self,
         target: str,
         desc_num: int = 2,
-        ignore: Union[str, Iterable] = None,
+        ignore: Optional[Union[str, Iterable]] = None,
         r_ref: float = 0,
     ):
         super()._select_data()
@@ -174,7 +176,7 @@ class PropertiesCorrelation(CorrelationBase):
         pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
-    def correlation(self, preprocessing=None):
+    def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
@@ -189,7 +191,7 @@ class PropertiesCorrelation(CorrelationBase):
                 res.append(result)
         self.results = pd.DataFrame(res)
 
-    def prepare_data(self, X, preprocessing):
+    def prepare_data(self, X, preprocessing: Optional[str]):
         X = super()._preprocess(data=X, mode=preprocessing)
         return X
 
@@ -199,7 +201,7 @@ class PolynomialCorrelation(CorrelationBase):
         self,
         target: str,
         degree: int,
-        ignore: Union[str, Iterable] = None,
+        ignore: Optional[Union[str, Iterable]] = None,
         r_ref: float = 0,
     ):
         super()._select_data()
@@ -211,7 +213,7 @@ class PolynomialCorrelation(CorrelationBase):
         pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
-    def correlation(self, preprocessing=None):
+    def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
@@ -226,7 +228,7 @@ class PolynomialCorrelation(CorrelationBase):
                 res.append(result)
         self.results = pd.DataFrame(res)
 
-    def prepare_data(self, x, preprocessing):
+    def prepare_data(self, x, preprocessing: Optional[str]):
         X = self.transform_x(x)
         X = skprep.PolynomialFeatures(
             degree=self.degree, include_bias=False
@@ -244,8 +246,8 @@ class PowerCorrelation(CorrelationBase):
         self,
         target: str,
         n_pow: int = 1,
-        ignore: Union[str, Iterable] = None,
-        r_ref: int = 0,
+        ignore: Optional[Union[str, Iterable]] = None,
+        r_ref: float = 0,
     ):
         super()._select_data()
         self.n_pow = n_pow
@@ -256,7 +258,7 @@ class PowerCorrelation(CorrelationBase):
         pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
-    def correlation(self, preprocessing=None):
+    def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
@@ -271,7 +273,7 @@ class PowerCorrelation(CorrelationBase):
                 res.append(result)
         self.results = pd.DataFrame(res)
 
-    def prepare_data(self, x, preprocessing):
+    def prepare_data(self, x, preprocessing: Optional[str]):
         X = self.transform_x(x)
         X = super()._preprocess(data=X, mode=preprocessing)
         return X
