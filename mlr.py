@@ -3,10 +3,10 @@ import sys
 
 import numpy as np
 import pandas as pd
+import sklearn.preprocessing as skprep
 from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
-from sklearn.preprocessing import PolynomialFeatures, normalize, scale
 
 
 np.set_printoptions(precision=3)
@@ -86,9 +86,9 @@ class CorrelationBase:
         if mode is None:
             return data
         elif mode == "normalize":
-            return normalize(data, axis=0)
+            return skprep.normalize(data, axis=0)
         elif mode == "scale":
-            return scale(data)
+            return skprep.scale(data)
         else:
             raise ValueError(
                 f"Was expecting one of {{'normalize', 'scale'}}, {mode} was received."
@@ -157,7 +157,7 @@ class PropertiesCorrelation(CorrelationBase):
         self.desc_num = desc_num
         self.r_ref = r_ref
         self.property = self.data[prop_name].to_numpy()
-        choose_r = desc_num if desc_num <= len(self.col_names) else 2  # TODO: Check
+        choose_r = desc_num if desc_num <= len(self.data.columns) else 2  # TODO: Check
         pool = self.data.columns[self.data.columns != prop_name]
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
@@ -208,7 +208,9 @@ class PolynomialCorrelation(CorrelationBase):
 
     def prepare_data(self, x, preprocessing):
         X = self.transform_x(x)
-        X = PolynomialFeatures(degree=self.degree, include_bias=False).fit_transform(X)
+        X = skprep.PolynomialFeatures(
+            degree=self.degree, include_bias=False
+        ).fit_transform(X)
         X = super()._preprocess(data=X, mode=preprocessing)
         return X
 
