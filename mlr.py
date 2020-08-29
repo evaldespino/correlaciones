@@ -1,6 +1,6 @@
 import itertools as itt
 import sys
-from typing import Iterable, List, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import pandas as pd
 import sklearn.preprocessing as skprep
@@ -102,7 +102,7 @@ class CorrelationBase:
     def transform_x(self, *args, **kwargs):
         raise NotImplementedError
 
-    def _get_extended_result(self, model, X, y, var_indexes: list) -> dict:
+    def _get_extended_result(self, model, X, y, var_names: List) -> Dict[str, Any]:
         f_values, p_values = f_regression(X, y)
         result = {
             "r2": model.score(X, y),
@@ -111,7 +111,7 @@ class CorrelationBase:
             "cv_r2": cross_val_score(estimator=model, X=X, y=y, cv=2),
             "intercept": model.intercept_,
             "coef": model.coef_,
-            "regressors": var_indexes,
+            "regressors": var_names,
         }
         return result
 
@@ -143,7 +143,7 @@ class DescriptorCorrelation(CorrelationBase):
             r_2 = model.score(X, y)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=y, var_indexes=current_comb
+                    model=model, X=X, y=y, var_names=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -184,7 +184,7 @@ class PropertiesCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_names=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -221,7 +221,7 @@ class PolynomialCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_names=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -266,7 +266,7 @@ class PowerCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_names=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
