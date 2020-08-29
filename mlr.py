@@ -39,8 +39,6 @@ class CorrelationBase:
 
     def _select_data(self):
         self.data = self.data.select_dtypes(include=np.number)
-        self.col_names = self.data.columns.to_list()
-        self.col_info = {key: index for index, key in enumerate(self.data.columns)}
 
     def set_params(self, *args, **kwargs):
         funcname = sys._getframe().f_code.co_name
@@ -117,11 +115,14 @@ class CorrelationBase:
 
 
 class DescriptorCorrelation(CorrelationBase):
-    def set_params(self, ignore=None, r_ref: float = 0):
+    def set_params(self, ignore: str = None, r_ref: float = 0):
         super()._select_data()
         self.r_ref = r_ref
         choose_r = 2
-        self.combinations = list(itt.combinations(self.col_names, r=choose_r))
+        pool = self.data.columns
+        if ignore is not None:
+            pool = pool[pool != ignore]
+        self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
@@ -157,8 +158,8 @@ class PropertiesCorrelation(CorrelationBase):
         self.r_ref = r_ref
         self.property = self.data[prop_name].to_numpy()
         choose_r = desc_num if desc_num <= len(self.col_names) else 2  # TODO: Check
-        indexes = self.data.columns[self.data.columns != prop_name]
-        self.combinations = list(itt.combinations(indexes, r=choose_r))
+        pool = self.data.columns[self.data.columns != prop_name]
+        self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
@@ -187,8 +188,8 @@ class PolynomialCorrelation(CorrelationBase):
         self.r_ref = r_ref
         self.property = self.data[prop_name].to_numpy()
         choose_r = 1
-        indexes = self.data.columns[self.data.columns != prop_name]
-        self.combinations = list(itt.combinations(indexes, r=choose_r))
+        pool = self.data.columns[self.data.columns != prop_name]
+        self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
@@ -223,8 +224,8 @@ class PowerCorrelation(CorrelationBase):
         self.r_ref = r_ref
         self.property = self.data[prop_name].to_numpy()
         choose_r = 1
-        indexes = self.data.columns[self.data.columns != prop_name]
-        self.combinations = list(itt.combinations(indexes, r=choose_r))
+        pool = self.data.columns[self.data.columns != prop_name]
+        self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
         res = []
