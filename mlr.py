@@ -1,7 +1,6 @@
 import itertools as itt
 import sys
 
-import numpy as np
 import pandas as pd
 import sklearn.preprocessing as skprep
 from sklearn.feature_selection import f_regression
@@ -9,7 +8,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 
 
-np.set_printoptions(precision=3)
+
+pd.set_option("display.precision", 3)
 
 
 class CorrelationBase:
@@ -38,7 +38,7 @@ class CorrelationBase:
         return fmt_str
 
     def _select_data(self):
-        self.data = self.data.select_dtypes(include=np.number)
+        self.data = self.data.select_dtypes(include="number")
 
     def set_params(self, *args, **kwargs):
         funcname = sys._getframe().f_code.co_name
