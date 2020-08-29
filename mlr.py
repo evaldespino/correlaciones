@@ -1,5 +1,6 @@
 import itertools as itt
 import sys
+from typing import Iterable, List, Union
 
 import pandas as pd
 import sklearn.preprocessing as skprep
@@ -7,6 +8,7 @@ from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 
+from util._validators import validate_sequence
 
 
 pd.set_option("display.precision", 3)
@@ -113,15 +115,19 @@ class CorrelationBase:
         }
         return result
 
+    @staticmethod
+    def _drop_from_index(index, ignore: list):
+        if ignore is not None:
+            index = index.drop(validate_sequence(ignore))
+        return index
+
 
 class DescriptorCorrelation(CorrelationBase):
-    def set_params(self, ignore: str = None, r_ref: float = 0):
+    def set_params(self, ignore: Union[str, Iterable] = None, r_ref: float = 0):
         super()._select_data()
         self.r_ref = r_ref
         choose_r = 2
-        pool = self.data.columns
-        if ignore is not None:
-            pool = pool[pool != ignore]
+        pool = super()._drop_from_index(index=self.data.columns, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -152,13 +158,20 @@ class DescriptorCorrelation(CorrelationBase):
 
 
 class PropertiesCorrelation(CorrelationBase):
-    def set_params(self, target: str, desc_num: int = 2, r_ref: float = 0):
+    def set_params(
+        self,
+        target: str,
+        desc_num: int = 2,
+        ignore: Union[str, Iterable] = None,
+        r_ref: float = 0,
+    ):
         super()._select_data()
         self.desc_num = desc_num
         self.r_ref = r_ref
         self.target = self.data[target].to_numpy()
         choose_r = desc_num if desc_num <= len(self.data.columns) else 2  # TODO: Check
-        pool = self.data.columns[self.data.columns != target]
+        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
+        pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -182,13 +195,20 @@ class PropertiesCorrelation(CorrelationBase):
 
 
 class PolynomialCorrelation(CorrelationBase):
-    def set_params(self, target: str, degree: int, r_ref: float = 0):
+    def set_params(
+        self,
+        target: str,
+        degree: int,
+        ignore: Union[str, Iterable] = None,
+        r_ref: float = 0,
+    ):
         super()._select_data()
         self.degree = degree
         self.r_ref = r_ref
         self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = self.data.columns[self.data.columns != target]
+        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
+        pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -220,13 +240,20 @@ class PolynomialCorrelation(CorrelationBase):
 
 
 class PowerCorrelation(CorrelationBase):
-    def set_params(self, target: str, n_pow: int = 1, r_ref: int = 0):
+    def set_params(
+        self,
+        target: str,
+        n_pow: int = 1,
+        ignore: Union[str, Iterable] = None,
+        r_ref: int = 0,
+    ):
         super()._select_data()
         self.n_pow = n_pow
         self.r_ref = r_ref
         self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = self.data.columns[self.data.columns != target]
+        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
+        pool = super()._drop_from_index(index=pool, ignore=ignore)
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
