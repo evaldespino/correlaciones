@@ -152,13 +152,13 @@ class DescriptorCorrelation(CorrelationBase):
 
 
 class PropertiesCorrelation(CorrelationBase):
-    def set_params(self, prop_name: str, desc_num: int = 2, r_ref: float = 0):
+    def set_params(self, target: str, desc_num: int = 2, r_ref: float = 0):
         super()._select_data()
         self.desc_num = desc_num
         self.r_ref = r_ref
-        self.property = self.data[prop_name].to_numpy()
+        self.target = self.data[target].to_numpy()
         choose_r = desc_num if desc_num <= len(self.data.columns) else 2  # TODO: Check
-        pool = self.data.columns[self.data.columns != prop_name]
+        pool = self.data.columns[self.data.columns != target]
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -167,11 +167,11 @@ class PropertiesCorrelation(CorrelationBase):
             X = self.prepare_data(
                 X=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
-            model = LinearRegression().fit(X, y=self.property)
-            r_2 = model.score(X, y=self.property)
+            model = LinearRegression().fit(X, y=self.target)
+            r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.property, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_indexes=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -182,13 +182,13 @@ class PropertiesCorrelation(CorrelationBase):
 
 
 class PolynomialCorrelation(CorrelationBase):
-    def set_params(self, prop_name: str, degree: int, r_ref: float = 0):
+    def set_params(self, target: str, degree: int, r_ref: float = 0):
         super()._select_data()
         self.degree = degree
         self.r_ref = r_ref
-        self.property = self.data[prop_name].to_numpy()
+        self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = self.data.columns[self.data.columns != prop_name]
+        pool = self.data.columns[self.data.columns != target]
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -197,11 +197,11 @@ class PolynomialCorrelation(CorrelationBase):
             X = self.prepare_data(
                 x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
-            model = LinearRegression().fit(X, y=self.property)
-            r_2 = model.score(X, y=self.property)
+            model = LinearRegression().fit(X, y=self.target)
+            r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.property, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_indexes=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -220,13 +220,13 @@ class PolynomialCorrelation(CorrelationBase):
 
 
 class PowerCorrelation(CorrelationBase):
-    def set_params(self, prop_name: str, n_pow: int = 1, r_ref: int = 0):
+    def set_params(self, target: str, n_pow: int = 1, r_ref: int = 0):
         super()._select_data()
         self.n_pow = n_pow
         self.r_ref = r_ref
-        self.property = self.data[prop_name].to_numpy()
+        self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = self.data.columns[self.data.columns != prop_name]
+        pool = self.data.columns[self.data.columns != target]
         self.combinations = list(itt.combinations(pool, r=choose_r))
 
     def correlation(self, preprocessing=None):
@@ -235,11 +235,11 @@ class PowerCorrelation(CorrelationBase):
             X = self.prepare_data(
                 x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
             )
-            model = LinearRegression().fit(X, y=self.property)
-            r_2 = model.score(X, y=self.property)
+            model = LinearRegression().fit(X, y=self.target)
+            r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.property, var_indexes=current_comb
+                    model=model, X=X, y=self.target, var_indexes=current_comb
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
