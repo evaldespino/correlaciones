@@ -159,7 +159,7 @@ class DescriptorCorrelation(CorrelationBase):
 
     def prepare_data(self, x, y, preprocessing: Optional[str]):
         X = self.transform_x(x)
-        X = super()._preprocess(data=X, mode=preprocessing)
+        X = self._preprocess(data=X, mode=preprocessing)
         return X, y
 
     def transform_x(self, data):
@@ -203,7 +203,7 @@ class PropertiesCorrelation(CorrelationBase):
         self.results = pd.DataFrame(res)
 
     def prepare_data(self, X, preprocessing: Optional[str]):
-        X = super()._preprocess(data=X, mode=preprocessing)
+        X = self._preprocess(data=X, mode=preprocessing)
         return X
 
     @staticmethod
@@ -249,7 +249,7 @@ class PolynomialCorrelation(CorrelationBase):
         X = skprep.PolynomialFeatures(
             degree=self.degree, include_bias=False
         ).fit_transform(X)
-        X = super()._preprocess(data=X, mode=preprocessing)
+        X = self._preprocess(data=X, mode=preprocessing)
         return X
 
     def transform_x(self, data):
@@ -295,7 +295,7 @@ class PowerCorrelation(CorrelationBase):
 
     def prepare_data(self, x, preprocessing: Optional[str]):
         X = self.transform_x(x)
-        X = super()._preprocess(data=X, mode=preprocessing)
+        X = self._preprocess(data=X, mode=preprocessing)
         return X
 
     def transform_x(self, data):
