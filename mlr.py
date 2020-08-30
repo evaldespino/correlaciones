@@ -65,20 +65,15 @@ class CorrelationBase:
         for result in results.itertuples():
             if result.Index >= limit:
                 break
-            title = self._make_title(result.regressors)
+            title = self._make_title(result.regressors, result.regressand)
             print(
                 f"{title} R2: {result.r2:.3f} Cv_R2: {result.cv_r2[0]:.3f}",
                 f"Ordenada: {result.intercept:.3f} Coef: {result.coef}",
                 f"F: {result.f_values}\n",
             )
 
-    def _make_title(self, regressors: List) -> str:
-        title = ""
-        for regressor in regressors:
-            title = f"{title} {regressor}"
-            if hasattr(self, "n_pow") and self.n_pow != 1:
-                title += f"**{self.n_pow}"
-        return title
+    def _make_title(self, *args, **kwargs):
+        raise NotImplementedError
 
     def save_to_csv(self, filepath: str, sep: str = ","):
         pass
@@ -102,7 +97,9 @@ class CorrelationBase:
     def transform_x(self, *args, **kwargs):
         raise NotImplementedError
 
-    def _get_extended_result(self, model, X, y, var_names: List) -> Dict[str, Any]:
+    def _get_extended_result(
+        self, model, X, y, regressor_names: List[str], regressand_name: str
+    ) -> Dict[str, Any]:
         f_values, p_values = f_regression(X, y)
         result = {
             "r2": model.score(X, y),
@@ -111,7 +108,8 @@ class CorrelationBase:
             "cv_r2": cross_val_score(estimator=model, X=X, y=y, cv=2),
             "intercept": model.intercept_,
             "coef": model.coef_,
-            "regressors": var_names,
+            "regressors": regressor_names,
+            "regressand": regressand_name,
         }
         return result
 
@@ -145,7 +143,11 @@ class DescriptorCorrelation(CorrelationBase):
             r_2 = model.score(X, y)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=y, var_names=current_comb
+                    model=model,
+                    X=X,
+                    y=y,
+                    regressor_names=x_name,
+                    regressand_name=y_name,
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -157,6 +159,10 @@ class DescriptorCorrelation(CorrelationBase):
 
     def transform_x(self, data):
         return data.reshape((-1, 1))
+
+    @staticmethod
+    def _make_title(regressor: str, regressand: str) -> str:
+        return f"{regressand} ~ {regressor}"
 
 
 class PropertiesCorrelation(CorrelationBase):
@@ -186,7 +192,11 @@ class PropertiesCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_names=current_comb
+                    model=model,
+                    X=X,
+                    y=self.target,
+                    regressor_names=current_comb,
+                    regressand_name=self.target_name,
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -194,6 +204,11 @@ class PropertiesCorrelation(CorrelationBase):
     def prepare_data(self, X, preprocessing: Optional[str]):
         X = super()._preprocess(data=X, mode=preprocessing)
         return X
+
+    @staticmethod
+    def _make_title(regressors: Iterable, regressand: str) -> str:
+        regressors_str = " + ".join(regressors)
+        return f"{regressand} ~ {regressors_str}"
 
 
 class PolynomialCorrelation(CorrelationBase):
@@ -223,7 +238,11 @@ class PolynomialCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_names=current_comb
+                    model=model,
+                    X=X,
+                    y=self.target,
+                    regressor_names=current_comb,
+                    regressand_name=self.target_name,
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -239,6 +258,10 @@ class PolynomialCorrelation(CorrelationBase):
     def transform_x(self, data):
         has_single_column = data.size == self.data.shape[0]
         return data.reshape((-1, 1)) if has_single_column else data
+
+    def _make_title(self, regressor: Iterable, regressand: str) -> str:
+        regressor_str = regressor[0]
+        return f"{regressand} ~ O({regressor_str}^{self.degree})"
 
 
 class PowerCorrelation(CorrelationBase):
@@ -268,7 +291,11 @@ class PowerCorrelation(CorrelationBase):
             r_2 = model.score(X, y=self.target)
             if r_2 >= self.r_ref:
                 result = self._get_extended_result(
-                    model=model, X=X, y=self.target, var_names=current_comb
+                    model=model,
+                    X=X,
+                    y=self.target,
+                    regressor_names=current_comb,
+                    regressand_name=self.target_name,
                 )
                 res.append(result)
         self.results = pd.DataFrame(res)
@@ -280,3 +307,7 @@ class PowerCorrelation(CorrelationBase):
 
     def transform_x(self, data):
         return data ** self.n_pow
+
+    def _make_title(self, regressor: Iterable, regressand: str) -> str:
+        regressor_str = regressor[0]
+        return f"{regressand} ~ {regressor_str}^{self.n_pow}"
