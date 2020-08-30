@@ -135,10 +135,10 @@ class DescriptorCorrelation(CorrelationBase):
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
-            x_index, y_index = current_comb
+            x_name, y_name = current_comb
             X, y = self.prepare_data(
-                x=self.data.loc[:, x_index].to_numpy(),
-                y=self.data.loc[:, y_index].to_numpy(),
+                x=self.data.loc[:, x_name].to_numpy(),
+                y=self.data.loc[:, y_name].to_numpy(),
                 preprocessing=preprocessing,
             )
             model = LinearRegression().fit(X, y)
