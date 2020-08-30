@@ -39,12 +39,19 @@ class CorrelationBase:
             fmt_str = f"{fmt_str} {operator} "
         return fmt_str
 
-    def _select_data(self):
+    def set_params(
+        self,
+        target: Optional[str] = None,
+        ignore: Optional[Union[str, Iterable]] = None,
+        r_ref: float = 0,
+    ):
         self.data = self.data.select_dtypes(include="number")
-
-    def set_params(self, *args, **kwargs):
-        funcname = sys._getframe().f_code.co_name
-        raise NotImplementedError(f"{funcname} must be implemented by subclass.")
+        self.r_ref = r_ref
+        if target is not None:
+            self.target_name = target
+            self.target = self.data[target].to_numpy()
+        self.pool = self.__drop_from_index(index=self.data.columns, ignore=target)
+        self.pool = self.__drop_from_index(index=self.pool, ignore=ignore)
 
     def correlation(self, *args, **kwargs):
         funcname = sys._getframe().f_code.co_name
@@ -114,7 +121,7 @@ class CorrelationBase:
         return result
 
     @staticmethod
-    def _drop_from_index(index, ignore: List[str]):
+    def __drop_from_index(index, ignore: List[str]):
         if ignore is not None:
             index = index.drop(validate_sequence(ignore))
         return index
@@ -124,11 +131,9 @@ class DescriptorCorrelation(CorrelationBase):
     def set_params(
         self, ignore: Optional[Union[str, Iterable]] = None, r_ref: float = 0
     ):
-        super()._select_data()
-        self.r_ref = r_ref
+        super().set_params(target=None, ignore=ignore, r_ref=r_ref)
         choose_r = 2
-        pool = super()._drop_from_index(index=self.data.columns, ignore=ignore)
-        self.combinations = list(itt.combinations(pool, r=choose_r))
+        self.combinations = list(itt.combinations(self.pool, r=choose_r))
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
@@ -173,14 +178,10 @@ class PropertiesCorrelation(CorrelationBase):
         ignore: Optional[Union[str, Iterable]] = None,
         r_ref: float = 0,
     ):
-        super()._select_data()
+        super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.desc_num = desc_num
-        self.r_ref = r_ref
-        self.target = self.data[target].to_numpy()
         choose_r = desc_num if desc_num <= len(self.data.columns) else 2  # TODO: Check
-        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
-        pool = super()._drop_from_index(index=pool, ignore=ignore)
-        self.combinations = list(itt.combinations(pool, r=choose_r))
+        self.combinations = list(itt.combinations(self.pool, r=choose_r))
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
@@ -219,14 +220,10 @@ class PolynomialCorrelation(CorrelationBase):
         ignore: Optional[Union[str, Iterable]] = None,
         r_ref: float = 0,
     ):
-        super()._select_data()
+        super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.degree = degree
-        self.r_ref = r_ref
-        self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
-        pool = super()._drop_from_index(index=pool, ignore=ignore)
-        self.combinations = list(itt.combinations(pool, r=choose_r))
+        self.combinations = list(itt.combinations(self.pool, r=choose_r))
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
@@ -272,14 +269,10 @@ class PowerCorrelation(CorrelationBase):
         ignore: Optional[Union[str, Iterable]] = None,
         r_ref: float = 0,
     ):
-        super()._select_data()
+        super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.n_pow = n_pow
-        self.r_ref = r_ref
-        self.target = self.data[target].to_numpy()
         choose_r = 1
-        pool = super()._drop_from_index(index=self.data.columns, ignore=target)
-        pool = super()._drop_from_index(index=pool, ignore=ignore)
-        self.combinations = list(itt.combinations(pool, r=choose_r))
+        self.combinations = list(itt.combinations(self.pool, r=choose_r))
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
