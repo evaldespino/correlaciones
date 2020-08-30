@@ -74,7 +74,7 @@ class CorrelationBase:
                 break
             title = self._make_title(result.regressors, result.regressand)
             print(
-                f"{title} R2: {result.r2:.3f} Cv_R2: {result.cv_r2[0]:.3f}",
+                f"{title} R2: {result.r2:.3f} Cv_R2: {result.cv_r2:.3f}",
                 f"Ordenada: {result.intercept:.3f} Coef: {result.coef}",
                 f"F: {result.f_values}\n",
             )
@@ -112,12 +112,21 @@ class CorrelationBase:
             "r2": model.score(X, y),
             "f_values": f_values,
             "p_values": p_values,
-            "cv_r2": cross_val_score(estimator=model, X=X, y=y, cv=2),
-            "intercept": model.intercept_,
-            "coef": model.coef_,
+            "cv_r2": cross_val_score(estimator=model, X=X, y=y, cv=2)[0],
             "regressors": regressor_names,
             "regressand": regressand_name,
+            "intercept": model.intercept_,
+            "coef": model.coef_,
         }
+        with_multiple = [
+            (regressor_names, "x"),
+            (model.coef_, "b"),
+            (f_values, "F_val"),
+            (p_values, "p_val"),
+        ]
+        # Expand the results with multiple values and append them to `result`
+        for result_type, basename in with_multiple:
+            result.update(sequential_key_dict(lst=result_type, basename=basename))
         return result
 
     @staticmethod
