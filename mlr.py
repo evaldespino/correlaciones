@@ -58,7 +58,7 @@ class CorrelationBase:
         raise NotImplementedError(f"{funcname} must be implemented by subclass.")
 
     def print_results(
-        self, limit: int = None, sortby: str = "r2", ascending: bool = False
+        self, limit: Optional[int] = None, sortby: str = "r2", ascending: bool = False
     ):
         if not len(self.results):
             print(f"No se encontraron correlaciones con R2 mayor a {self.r_ref}")
