@@ -83,7 +83,9 @@ class CorrelationBase:
         raise NotImplementedError
 
     def save_to_csv(self, filepath: str, sep: str = ","):
-        pass
+        self.results.drop(
+            columns=["coef", "f_values", "p_values", "regressors"]
+        ).to_csv(filepath, sep=sep, index=False)
 
     @staticmethod
     def _preprocess(data, mode: Optional[str] = None):
