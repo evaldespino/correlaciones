@@ -1,4 +1,3 @@
-import itertools as itt
 import sys
 from typing import Any, Dict, Iterable, List, Optional, Union
 
@@ -8,7 +7,8 @@ from sklearn.feature_selection import f_regression
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import cross_val_score
 
-from util._validators import validate_sequence
+from _validators import validate_sequence
+from utils import sequential_key_dict, list_combinations
 
 
 pd.set_option("display.precision", 3)
@@ -133,15 +133,15 @@ class DescriptorCorrelation(CorrelationBase):
     ):
         super().set_params(target=None, ignore=ignore, r_ref=r_ref)
         choose_r = 2
-        self.combinations = list(itt.combinations(self.pool, r=choose_r))
+        self.combinations = list_combinations(self.pool, r=choose_r)
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             x_name, y_name = current_comb
             X, y = self.prepare_data(
-                x=self.data.loc[:, x_name].to_numpy(),
-                y=self.data.loc[:, y_name].to_numpy(),
+                x=self.data[x_name].to_numpy(),
+                y=self.data[y_name].to_numpy(),
                 preprocessing=preprocessing,
             )
             model = LinearRegression().fit(X, y)
@@ -181,13 +181,13 @@ class PropertiesCorrelation(CorrelationBase):
         super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.desc_num = desc_num
         choose_r = desc_num if desc_num <= len(self.data.columns) else 2  # TODO: Check
-        self.combinations = list(itt.combinations(self.pool, r=choose_r))
+        self.combinations = list_combinations(self.pool, r=choose_r)
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                X=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
+                X=self.data[current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.target)
             r_2 = model.score(X, y=self.target)
@@ -223,13 +223,13 @@ class PolynomialCorrelation(CorrelationBase):
         super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.degree = degree
         choose_r = 1
-        self.combinations = list(itt.combinations(self.pool, r=choose_r))
+        self.combinations = list_combinations(self.pool, r=choose_r)
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
+                x=self.data[current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.target)
             r_2 = model.score(X, y=self.target)
@@ -272,13 +272,13 @@ class PowerCorrelation(CorrelationBase):
         super().set_params(target=target, ignore=ignore, r_ref=r_ref)
         self.n_pow = n_pow
         choose_r = 1
-        self.combinations = list(itt.combinations(self.pool, r=choose_r))
+        self.combinations = list_combinations(self.pool, r=choose_r)
 
     def correlation(self, preprocessing: Optional[str] = None):
         res = []
         for current_comb in self.combinations:
             X = self.prepare_data(
-                x=self.data.loc[:, current_comb].to_numpy(), preprocessing=preprocessing
+                x=self.data[current_comb].to_numpy(), preprocessing=preprocessing
             )
             model = LinearRegression().fit(X, y=self.target)
             r_2 = model.score(X, y=self.target)
